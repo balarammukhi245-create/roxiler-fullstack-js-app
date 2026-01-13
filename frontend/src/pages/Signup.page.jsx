@@ -1,8 +1,8 @@
 import { useState } from "react";
-import API from "../src/api/axios.js";
+import API from "../api/axios";
 import { Link } from "react-router-dom";
 
-function Signup() {
+function Signup() { 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -22,7 +22,7 @@ function Signup() {
       alert("Signup successful 🎉");
     } catch (error) {
       console.error(error);
-      alert("Signup failed ❌");
+      alert(error.response?.data?.message || "Signup failed ❌");
     }
   };
 

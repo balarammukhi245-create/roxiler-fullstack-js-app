@@ -1,11 +1,11 @@
 import { useState } from "react";
-import API from  "../src/api/axios.js"
-import { Link } from "react-router-dom";
-import Signup from "./Signup.page.jsx";
+import API from "../api/axios";
+import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,8 +16,15 @@ function Login() {
         password,
       });
 
+      //save token to localStorage
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("role", res.data.user.role);
+
+
       alert("Login successful 🎉");
+      //Redirect to dashboard
+      navigate("/dashboard");
+
     } catch (error) {
       console.error(error);
       alert("Invalid credentials ❌");

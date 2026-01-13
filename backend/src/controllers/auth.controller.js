@@ -39,6 +39,8 @@ export const updatePassword = (req, res) => {
 export const signup = (req, res) => {
   const { name, email, password, address } = req.body;
 
+  console.log("Signup body:", req.body);
+
   if (!name || !email || !password) {
     return res.status(400).json({ message: "All fields required" });
   }
@@ -52,8 +54,10 @@ export const signup = (req, res) => {
 
   db.run(query, [name, email, hashedPassword, address], function (err) {
     if (err) {
+      console.log("Signup DB error:", err.message);
       return res.status(400).json({ message: err.message });
     }
+
     res.status(201).json({ message: "User registered successfully" });
   });
 };
