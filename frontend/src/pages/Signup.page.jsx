@@ -8,6 +8,7 @@ function Signup() {
     email: "",
     password: "",
     address: "",
+    role:"user",
   });
 
   const handleChange = (e) => {
@@ -66,6 +67,15 @@ function Signup() {
             onChange={handleChange}
             className="w-full px-4 py-2 border rounded-lg"
           />
+        <select
+              name="role"
+              onChange={handleChange}
+              className="w-full px-4 py-2 border rounded-lg"
+              >
+              <option value="user">User</option>
+              <option value="owner">Store Owner</option>
+              <option value="admin">Admin</option>
+          </select>
 
           <button
             type="submit"

@@ -13,19 +13,15 @@ function App() {
       <Route path="/" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
 
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/dashboard"
+       element={ <ProtectedRoute> 
+        <Dashboard /> 
+       </ProtectedRoute> } />
 
       <Route
         path="/admin"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["admin"]}>
             <AdminDashboard />
           </ProtectedRoute>
         }
@@ -34,20 +30,20 @@ function App() {
       <Route
         path="/user"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["user"]}>
             <UserDashboard />
           </ProtectedRoute>
         }
       />
 
-      <Route
-        path="/owner"
-        element={
-          <ProtectedRoute>
-            <OwnerDashboard />
-          </ProtectedRoute>
-        }
-      />
+    <Route
+      path="/owner"
+      element={
+        <ProtectedRoute allowedRoles={["owner"]}>
+          <OwnerDashboard />
+        </ProtectedRoute>
+      }
+    />
     </Routes>
   );
 }

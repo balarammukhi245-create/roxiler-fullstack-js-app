@@ -35,32 +35,35 @@ export const updatePassword = (req, res) => {
 
 
 
-// SIGNUP (Normal User)
+// SIGNUP (for all roles)
 export const signup = (req, res) => {
-  const { name, email, password, address } = req.body;
+  const { name, email, password, address, role } = req.body;
 
-  console.log("Signup body:", req.body);
-
-  if (!name || !email || !password) {
+  if (!name || !email || !password || !role) {
     return res.status(400).json({ message: "All fields required" });
+  }
+
+  const allowedRoles = ["user", "admin", "owner"];
+  if (!allowedRoles.includes(role)) {
+    return res.status(400).json({ message: "Invalid role" });
   }
 
   const hashedPassword = bcrypt.hashSync(password, 10);
 
   const query = `
     INSERT INTO users (name, email, password, address, role)
-    VALUES (?, ?, ?, ?, 'user')
+    VALUES (?, ?, ?, ?, ?)
   `;
 
-  db.run(query, [name, email, hashedPassword, address], function (err) {
+  db.run(query, [name, email, hashedPassword, address, role], function (err) {
     if (err) {
-      console.log("Signup DB error:", err.message);
       return res.status(400).json({ message: err.message });
     }
 
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(201).json({ message: `${role} registered successfully` });
   });
 };
+
 
 // LOGIN
 export const login = (req, res) => {
