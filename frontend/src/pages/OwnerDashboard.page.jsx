@@ -3,14 +3,13 @@ import API from "../api/axios";
 import LogoutButton from "../components/LogoutButton";
 
 function OwnerDashboard() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true); // separate loading state
+  const [data, setData] = useState({ store: null, ratings: [] });
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchDashboard = async () => {
       const token = localStorage.getItem("token");
-
       if (!token) {
         setError("Unauthorized: No token found");
         setLoading(false);
@@ -18,26 +17,14 @@ function OwnerDashboard() {
       }
 
       try {
-        const res = await API.get("/owner/dashboard", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
+        const res = await API.get("/owner/dashboard");
         setData(res.data);
       } catch (err) {
         console.error(err);
-
-        // Handle specific status codes
         if (err.response) {
-          if (err.response.status === 401) {
-            setError("Unauthorized access. Please login again.");
-          } else if (err.response.status === 404) {
-            setError("Dashboard data not found.");
-          } else {
-            setError("Failed to load dashboard.");
-          }
-        } else {
-          setError("Server is unreachable.");
-        }
+          if (err.response.status === 401) setError("Unauthorized access. Please login again.");
+          else setError("Failed to load dashboard.");
+        } else setError("Server is unreachable.");
       } finally {
         setLoading(false);
       }
@@ -72,8 +59,7 @@ function OwnerDashboard() {
       {/* Ratings Table */}
       <div className="bg-white p-6 rounded-xl shadow">
         <h2 className="text-lg font-semibold mb-4">Customer Ratings</h2>
-
-        {data.ratings && data.ratings.length > 0 ? (
+        {data.ratings.length > 0 ? (
           <table className="w-full border">
             <thead>
               <tr className="bg-gray-200">
@@ -87,9 +73,7 @@ function OwnerDashboard() {
                 <tr key={i} className="text-center">
                   <td className="p-2 border">{r.user_name}</td>
                   <td className="p-2 border">⭐ {r.rating}</td>
-                  <td className="p-2 border">
-                    {new Date(r.created_at).toLocaleString()}
-                  </td>
+                  <td className="p-2 border">{new Date(r.created_at).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>

@@ -1,19 +1,17 @@
 import db from "../config/db.js";
 
-// 🏪 Get Owner Dashboard
 export const getOwnerDashboard = (req, res) => {
   try {
     console.log("getOwnerDashboard called");
 
-    // Make sure req.user exists
     if (!req.user) {
       return res.status(401).json({ message: "Unauthorized. Please login." });
     }
 
-    const ownerId = req.user.id; // extracted from token
+    const ownerId = req.user.id;
     console.log("Owner ID:", ownerId);
 
-    // Query the store owned by this owner
+    // Fetch the store for this owner
     const storeQuery = `
       SELECT 
         stores.id,
@@ -24,19 +22,21 @@ export const getOwnerDashboard = (req, res) => {
       LEFT JOIN ratings ON stores.id = ratings.store_id
       WHERE stores.owner_id = ?
       GROUP BY stores.id
+      LIMIT 1
     `;
 
     db.get(storeQuery, [ownerId], (err, store) => {
       if (err) {
-        console.error(err);
-        return res.status(500).json({ message: "Database error", error: err });
+        console.error("DB error:", err);
+        return res.status(500).json({ message: "Database error" });
       }
 
+      // No store for this owner
       if (!store) {
-        return res.status(404).json({ message: "No store found for this owner" });
+        return res.json({ store: null, ratings: [] });
       }
 
-      // Query ratings for this store
+      // Fetch ratings for this store
       const ratingsQuery = `
         SELECT 
           users.name AS user_name,
@@ -50,11 +50,11 @@ export const getOwnerDashboard = (req, res) => {
 
       db.all(ratingsQuery, [store.id], (err, ratings) => {
         if (err) {
-          console.error(err);
-          return res.status(500).json({ message: "Database error", error: err });
+          console.error("DB error:", err);
+          return res.status(500).json({ message: "Database error" });
         }
 
-        // Respond with store info + ratings
+        // Return store and ratings
         res.json({
           store,
           ratings,
@@ -62,9 +62,9 @@ export const getOwnerDashboard = (req, res) => {
       });
     });
   } catch (error) {
-    console.error(error);
+    console.error("Server error:", error);
     if (!res.headersSent) {
-      res.status(500).json({ message: "Server error", error });
+      res.status(500).json({ message: "Server error" });
     }
   }
 };
