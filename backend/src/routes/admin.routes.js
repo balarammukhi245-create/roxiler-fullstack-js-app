@@ -4,19 +4,22 @@ import {
   addUser,
   addStore,
   listUsers,
-  listStores
+  listStores,
+  getUserDetails
 } from "../controllers/admin.controller.js";
-
 import { verifyToken } from "../middlewares/auth.middleware.js";
 import { allowRoles } from "../middlewares/role.middleware.js";
 
 const router = express.Router();
 
-// All routes below are admin-only
-router.get("/dashboard", verifyToken, allowRoles("admin"), getDashboardStats);
-router.post("/users", verifyToken, allowRoles("admin"), addUser);
-router.post("/stores", verifyToken, allowRoles("admin"), addStore);
-router.get("/users", verifyToken, allowRoles("admin"), listUsers);
-router.get("/stores", verifyToken, allowRoles("admin"), listStores);
+// All admin-only
+router.use(verifyToken, allowRoles("admin"));
+
+router.get("/stats", getDashboardStats);
+router.post("/users", addUser);
+router.post("/stores", addStore);
+router.get("/users", listUsers);
+router.get("/stores", listStores);
+router.get("/users/:id", getUserDetails);
 
 export default router;

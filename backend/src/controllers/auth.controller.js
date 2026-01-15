@@ -1,17 +1,27 @@
-import db from "../config/db.js";
+import { isValidEmail, isValidPassword, isValidName, isValidAddress } from "../utils/validators.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import db from "../config/db.js";
 
-// UPDATE PASSWORD
+
 export const updatePassword = (req, res) => {
   const userId = req.user.id;
   const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword || !newPassword) {
+    return res.status(400).json({ message: "All fields required" });
+  }
+
+  if (!isValidPassword(newPassword)) {
+    return res.status(400).json({
+      message: "Password must be 8–16 chars, include 1 uppercase & 1 special character",
+    });
+  }
 
   const query = `SELECT * FROM users WHERE id = ?`;
 
   db.get(query, [userId], (err, user) => {
     if (err || !user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
     const isMatch = bcrypt.compareSync(oldPassword, user.password);
@@ -26,7 +36,7 @@ export const updatePassword = (req, res) => {
 
     db.run(updateQuery, [hashedPassword, userId], function (err) {
       if (err) {
-        return res.status(400).json({ message: err.message });
+        return res.status(500).json({ message: "Database error" });
       }
       res.json({ message: "Password updated successfully" });
     });
@@ -34,13 +44,29 @@ export const updatePassword = (req, res) => {
 };
 
 
-
-// SIGNUP (for all roles)
 export const signup = (req, res) => {
   const { name, email, password, address, role } = req.body;
 
   if (!name || !email || !password || !role) {
     return res.status(400).json({ message: "All fields required" });
+  }
+
+  if (!isValidName(name)) {
+    return res.status(400).json({ message: "Name must be 20-60 characters" });
+  }
+
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ message: "Invalid email format" });
+  }
+
+  if (!isValidPassword(password)) {
+    return res.status(400).json({
+      message: "Password must be 8–16 chars, include 1 uppercase & 1 special character",
+    });
+  }
+
+  if (!isValidAddress(address)) {
+    return res.status(400).json({ message: "Address max 400 characters" });
   }
 
   const allowedRoles = ["user", "admin", "owner"];
@@ -57,46 +83,12 @@ export const signup = (req, res) => {
 
   db.run(query, [name, email, hashedPassword, address, role], function (err) {
     if (err) {
-      return res.status(400).json({ message: err.message });
+      if (err.message.includes("UNIQUE")) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+      return res.status(500).json({ message: "Database error" });
     }
 
     res.status(201).json({ message: `${role} registered successfully` });
-  });
-};
-
-
-// LOGIN
-export const login = (req, res) => {
-  const { email, password } = req.body;
-
-  const query = `SELECT * FROM users WHERE email = ?`;
-
-  db.get(query, [email], (err, user) => {
-    if (err || !user) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-
-    const isMatch = bcrypt.compareSync(password, user.password);
-
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-
-    const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
-
-    res.json({
-      message: "Login successful",
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        role: user.role,
-        email: user.email
-      }
-    });
   });
 };

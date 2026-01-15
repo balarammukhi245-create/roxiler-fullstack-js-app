@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard.page.jsx";
 import AdminDashboard from "./pages/AdminDashboard.page.jsx";
 import UserDashboard from "./pages/UserDashboard.page.jsx";
 import OwnerDashboard from "./pages/OwnerDashboard.page.jsx";
+import UpdatePassword from "./pages/UpdatePassword.page.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 function App() {
@@ -13,10 +14,14 @@ function App() {
       <Route path="/" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
 
-      <Route path="/dashboard"
-       element={ <ProtectedRoute> 
-        <Dashboard /> 
-       </ProtectedRoute> } />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="/admin"
@@ -36,14 +41,23 @@ function App() {
         }
       />
 
-    <Route
-      path="/owner"
-      element={
-        <ProtectedRoute allowedRoles={["owner"]}>
-          <OwnerDashboard />
-        </ProtectedRoute>
-      }
-    />
+      <Route
+        path="/owner"
+        element={
+          <ProtectedRoute allowedRoles={["owner"]}>
+            <OwnerDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/owner/update-password"
+        element={
+          <ProtectedRoute allowedRoles={["owner"]}>
+            <UpdatePassword />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }

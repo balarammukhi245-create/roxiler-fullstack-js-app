@@ -1,33 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import API from "../api/axios";
-import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  // Redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) navigate("/dashboard", { replace: true });
+  }, [navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      const res = await API.post("/auth/login", {
-        email,
-        password,
-      });
+      const res = await API.post("/auth/login", { email, password });
 
-      //save token to localStorage
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.user.role);
 
-
       alert("Login successful 🎉");
-      //Redirect to dashboard
       navigate("/dashboard");
-
     } catch (error) {
       console.error(error);
-      alert("Invalid credentials ❌");
+      alert(error.response?.data?.message || "Invalid credentials ❌");
     }
   };
 
@@ -70,10 +68,13 @@ function Login() {
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-4">
-          Don’t have an account? <Link to="/signup" className="text-blue-600">
-  Register
-</Link>
-
+          Don’t have an account?{" "}
+          <span
+            onClick={() => navigate("/signup")}
+            className="text-blue-600 cursor-pointer"
+          >
+            Register
+          </span>
         </p>
       </div>
     </div>

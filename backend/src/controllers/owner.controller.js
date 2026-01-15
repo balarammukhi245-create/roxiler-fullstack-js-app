@@ -1,17 +1,14 @@
 import db from "../config/db.js";
+import bcrypt from "bcrypt";
 
 export const getOwnerDashboard = (req, res) => {
   try {
-    console.log("getOwnerDashboard called");
-
-    if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized. Please login." });
+    if (!req.user || req.user.role !== "owner") {
+      return res.status(403).json({ message: "Access denied" });
     }
 
     const ownerId = req.user.id;
-    console.log("Owner ID:", ownerId);
 
-    // Fetch the store for this owner
     const storeQuery = `
       SELECT 
         stores.id,
@@ -31,12 +28,13 @@ export const getOwnerDashboard = (req, res) => {
         return res.status(500).json({ message: "Database error" });
       }
 
-      // No store for this owner
       if (!store) {
-        return res.json({ store: null, ratings: [] });
+        return res.json({
+          store: null,
+          ratings: []
+        });
       }
 
-      // Fetch ratings for this store
       const ratingsQuery = `
         SELECT 
           users.name AS user_name,
@@ -54,17 +52,61 @@ export const getOwnerDashboard = (req, res) => {
           return res.status(500).json({ message: "Database error" });
         }
 
-        // Return store and ratings
-        res.json({
-          store,
-          ratings,
+        return res.json({
+          store: {
+            id: store.id,
+            name: store.name,
+            address: store.address,
+            averageRating: Number(store.averageRating)
+          },
+          ratings: ratings || []
         });
       });
     });
+
   } catch (error) {
     console.error("Server error:", error);
-    if (!res.headersSent) {
-      res.status(500).json({ message: "Server error" });
-    }
+    return res.status(500).json({ message: "Server error" });
   }
+};
+
+export const updateOwnerPassword = (req, res) => {
+  const ownerId = req.user.id;
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword || !newPassword) {
+    return res.status(400).json({ message: "Old and new password required" });
+  }
+
+  // Password validation (8-16, uppercase, special)
+  const pwdRegex = /^(?=.*[A-Z])(?=.*[\W_]).{8,16}$/;
+  if (!pwdRegex.test(newPassword)) {
+    return res.status(400).json({
+      message: "Password must be 8-16 chars, include uppercase & special char"
+    });
+  }
+
+  const query = `SELECT password FROM users WHERE id = ? AND role='owner'`;
+
+  db.get(query, [ownerId], (err, user) => {
+    if (err || !user) {
+      return res.status(404).json({ message: "Owner not found" });
+    }
+
+    const isMatch = bcrypt.compareSync(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Old password is incorrect" });
+    }
+
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
+
+    db.run(
+      `UPDATE users SET password = ? WHERE id = ?`,
+      [hashedPassword, ownerId],
+      function (err) {
+        if (err) return res.status(500).json({ message: "DB error" });
+        res.json({ message: "Password updated successfully" });
+      }
+    );
+  });
 };
