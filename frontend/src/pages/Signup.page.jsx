@@ -11,6 +11,7 @@ function Signup() {
     role: "user",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   // Redirect if already logged in
@@ -60,14 +61,24 @@ function Signup() {
             className="w-full px-4 py-2 border rounded-lg"
           />
 
+          <div className="relative">
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             name="password"
             placeholder="Password"
             onChange={handleChange}
             required
             className="w-full px-4 py-2 border rounded-lg"
+            
           />
+          <span
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-2/4 -translate-y-2/4 cursor-pointer text-gray-600"
+            >
+              {showPassword ? "🙈" : "👁️"}
+            </span>
+
+            </div>
 
           <input
             type="text"

@@ -2,8 +2,9 @@
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+
 const API = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL:"http://localhost:5000/api"
 });
 
 // Attach token to every request

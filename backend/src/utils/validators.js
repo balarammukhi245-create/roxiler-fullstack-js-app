@@ -1,5 +1,5 @@
 export const isValidName = (name) => {
-  return name.length >= 20 && name.length <= 60;
+  return name.length >= 10 && name.length <= 60;
 };
 
 export const isValidAddress = (address = "") => {

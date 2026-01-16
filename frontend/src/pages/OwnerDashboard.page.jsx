@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import API from "../api/axios";
 import LogoutButton from "../components/LogoutButton";
+import { Navigate, useNavigate } from "react-router-dom";
 
 function OwnerDashboard() {
   const [data, setData] = useState({ store: null, ratings: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+    const navigate = useNavigate();
 
   useEffect(() => {
     let isMounted = true;
@@ -53,6 +56,15 @@ function OwnerDashboard() {
         <h1 className="text-2xl font-bold">🏪 Owner Dashboard</h1>
         <LogoutButton />
       </div>
+<div className="flex justify-end mb-4">
+  <button
+    onClick={() => navigate("/update-password")}
+    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+  >
+    Update Password
+  </button>
+</div>
+
 
       {/* Store Info */}
       {data?.store ? (

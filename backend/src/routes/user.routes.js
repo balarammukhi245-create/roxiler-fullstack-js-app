@@ -14,7 +14,7 @@ const router = express.Router();
 router.use(verifyToken, allowRoles("user"));
 
 router.get("/stores", getAllStores);
-router.post("/rating", submitRating);
+router.post("/rate", submitRating);
 router.put("/update-password", updatePassword);
 
 export default router;

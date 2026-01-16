@@ -39,5 +39,15 @@ export const initDB = () => {
     )
   `);
 
+  //  Login Attempt Tracker
+
+  db.run(`CREATE TABLE IF NOT EXISTS login_attempts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT UNIQUE,
+      attempts INTEGER DEFAULT 0,
+      locked_until INTEGER
+)
+`)
+
   console.log("✅ Tables created or already exist");
 };

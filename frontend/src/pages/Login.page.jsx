@@ -5,6 +5,7 @@ import API from "../api/axios";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   // Redirect if already logged in
@@ -13,21 +14,23 @@ function Login() {
     if (token) navigate("/dashboard", { replace: true });
   }, [navigate]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await API.post("/auth/login", { email, password });
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await API.post("/auth/login", { email, password });
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", res.data.user.role);
+    // Save token and role
+    localStorage.setItem("token", res.data.token);
+    localStorage.setItem("role", res.data.role);
+    localStorage.setItem("name", res.data.name);
 
-      alert("Login successful 🎉");
-      navigate("/dashboard");
-    } catch (error) {
-      console.error(error);
-      alert(error.response?.data?.message || "Invalid credentials ❌");
-    }
-  };
+    alert("Login successful 🎉");
+    navigate("/dashboard");
+  } catch (error) {
+    console.error(error);
+    alert(error.response?.data?.message || "Invalid credentials ❌");
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -47,18 +50,23 @@ function Login() {
             />
           </div>
 
-          <div>
+        <div className="relative">
             <label className="block mb-1 text-gray-600">Password</label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"} // 🔹 toggle
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-2/4 -translate-y-2/4 cursor-pointer text-gray-600"
+            >
+              {showPassword ? "🙈" : "👁️"}
+            </span>
           </div>
-
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"

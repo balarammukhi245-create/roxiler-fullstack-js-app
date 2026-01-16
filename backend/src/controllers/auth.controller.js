@@ -1,44 +1,99 @@
 import { isValidEmail, isValidPassword, isValidName, isValidAddress } from "../utils/validators.js";
 import bcrypt from "bcrypt";
 import db from "../config/db.js";
+import jwt from "jsonwebtoken";
 
+const handleFailedAttempt = (email, res) => {
+  const getQuery = `SELECT * FROM login_attempts WHERE email = ?`;
 
-export const updatePassword = (req, res) => {
-  const userId = req.user.id;
-  const { oldPassword, newPassword } = req.body;
+  db.get(getQuery, [email], (err, row) => {
+    if (!row) {
+      const insertQuery = `
+        INSERT INTO login_attempts (email, attempts)
+        VALUES (?, 1)
+      `;
+      db.run(insertQuery, [email]);
+    } else {
+      const attempts = row.attempts + 1;
 
-  if (!oldPassword || !newPassword) {
-    return res.status(400).json({ message: "All fields required" });
-  }
+      if (attempts >= 5) {
+        const lockTime = Date.now() + 15 * 60 * 1000; // 15 min lock
 
-  if (!isValidPassword(newPassword)) {
-    return res.status(400).json({
-      message: "Password must be 8–16 chars, include 1 uppercase & 1 special character",
-    });
-  }
+        const lockQuery = `
+          UPDATE login_attempts
+          SET attempts = ?, locked_until = ?
+          WHERE email = ?
+        `;
+        db.run(lockQuery, [attempts, lockTime, email]);
 
-  const query = `SELECT * FROM users WHERE id = ?`;
-
-  db.get(query, [userId], (err, user) => {
-    if (err || !user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const isMatch = bcrypt.compareSync(oldPassword, user.password);
-
-    if (!isMatch) {
-      return res.status(400).json({ message: "Old password incorrect" });
-    }
-
-    const hashedPassword = bcrypt.hashSync(newPassword, 10);
-
-    const updateQuery = `UPDATE users SET password = ? WHERE id = ?`;
-
-    db.run(updateQuery, [hashedPassword, userId], function (err) {
-      if (err) {
-        return res.status(500).json({ message: "Database error" });
+        return res.status(403).json({
+          message: "Too many attempts. Account locked for 15 minutes.",
+        });
+      } else {
+        const updateQuery = `
+          UPDATE login_attempts
+          SET attempts = ?
+          WHERE email = ?
+        `;
+        db.run(updateQuery, [attempts, email]);
       }
-      res.json({ message: "Password updated successfully" });
+    }
+
+    return res.status(400).json({ message: "Invalid credentials" });
+  });
+};
+
+
+
+export const login = (req, res) => {
+  const { email, password } = req.body;
+   console.log("Login attempt:", email, password); // 🔹 add this
+
+  if (!email || !password) {
+    return res.status(400).json({ message: "Invalid credentials" });
+  }
+
+  const getAttemptsQuery = `SELECT * FROM login_attempts WHERE email = ?`;
+
+  db.get(getAttemptsQuery, [email], (err, attemptRow) => {
+    const now = Date.now();
+
+    if (attemptRow && attemptRow.locked_until && now < attemptRow.locked_until) {
+      return res.status(403).json({
+        message: "Account locked. Try again later.",
+      });
+    }
+
+    const query = `SELECT * FROM users WHERE email = ?`;
+
+    db.get(query, [email], (err, user) => {
+      if (err || !user) {
+        return handleFailedAttempt(email, res);
+      }
+
+      const isMatch = bcrypt.compareSync(password, user.password);
+          console.log("Password match?", isMatch); // 🔹 add this
+
+      if (!isMatch) {
+        return handleFailedAttempt(email, res);
+      }
+
+      // Reset attempts on success
+      const resetQuery = `DELETE FROM login_attempts WHERE email = ?`;
+      db.run(resetQuery, [email]);
+
+      const token = jwt.sign(
+        { id: user.id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+
+      res.json({
+        message: "Login successful",
+        token,
+        role: user.role,
+        name: user.name,
+      });
     });
   });
 };
@@ -90,5 +145,45 @@ export const signup = (req, res) => {
     }
 
     res.status(201).json({ message: `${role} registered successfully` });
+  });
+};
+
+export const updatePassword = (req, res) => {
+  const userId = req.user.id;
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword || !newPassword) {
+    return res.status(400).json({ message: "All fields required" });
+  }
+
+  if (!isValidPassword(newPassword)) {
+    return res.status(400).json({
+      message: "Password must be 8–16 chars, include 1 uppercase & 1 special character",
+    });
+  }
+
+  const query = `SELECT * FROM users WHERE id = ?`;
+
+  db.get(query, [userId], (err, user) => {
+    if (err || !user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isMatch = bcrypt.compareSync(oldPassword, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Old password incorrect" });
+    }
+
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
+
+    const updateQuery = `UPDATE users SET password = ? WHERE id = ?`;
+
+    db.run(updateQuery, [hashedPassword, userId], function (err) {
+      if (err) {
+        return res.status(500).json({ message: "Database error" });
+      }
+      res.json({ message: "Password updated successfully" });
+    });
   });
 };

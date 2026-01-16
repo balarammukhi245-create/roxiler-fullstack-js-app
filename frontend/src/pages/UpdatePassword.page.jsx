@@ -1,3 +1,4 @@
+// src/pages/UpdatePassword.page.jsx
 import { useState } from "react";
 import API from "../api/axios";
 import LogoutButton from "../components/LogoutButton";
@@ -5,17 +6,28 @@ import LogoutButton from "../components/LogoutButton";
 function UpdatePassword() {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Detect role
+  const role = localStorage.getItem("role"); // "admin", "user", or "owner"
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
-      const res = await API.put("/owner/update-password", { oldPassword, newPassword });
+       const res = await API.patch("/auth/update-password", {
+        oldPassword,
+        newPassword,
+      });
+
       alert(res.data.message);
       setOldPassword("");
       setNewPassword("");
     } catch (err) {
       alert(err.response?.data?.message || "Password update failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -46,9 +58,10 @@ function UpdatePassword() {
           />
           <button
             type="submit"
+            disabled={loading}
             className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
           >
-            Update Password
+            {loading ? "Updating..." : "Update Password"}
           </button>
         </form>
       </div>

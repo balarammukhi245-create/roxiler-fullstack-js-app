@@ -7,6 +7,7 @@ import adminRoutes from "./routes/admin.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import ownerRoutes from "./routes/owner.routes.js";
 
+
 dotenv.config();
 
 const app = express();
@@ -16,7 +17,11 @@ app.use(express.json());
 
 // Initialize DB
 initDB();
+import bcrypt from "bcrypt";
 
+const hash = bcrypt.hashSync("Test@1234", 10);
+
+console.log(hash);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/user", userRoutes);
