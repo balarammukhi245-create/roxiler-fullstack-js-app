@@ -3,6 +3,56 @@
 A full-stack web application that allows users to rate registered stores. The platform supports three roles: **Admin**, **Store Owner**, and **Normal User**, each with specific permissions and dashboards.
 
 ---
+### 🌐 Live Demo Links
+
+You can access the deployed application using the links below:
+
+🚀 Frontend (React)
+
+🔗 https://roxiler-fullstack-js-app-frontend.onrender.com/
+
+⚙️ Backend (API)
+
+🔗 https://roxiler-fullstack-js-store-backend.onrender.com
+
+🧪 Backend Test Endpoint
+
+🔗 https://roxiler-fullstack-js-store-backend.onrender.com/api/test
+
+### 🔑 Demo Credentials
+
+You can use the following credentials to test the application:
+
+### 👑 Admin
+
+Email: admin@roxiler.com
+
+Password: Test@12345
+
+### 🏪 Store owner  
+Email: rohit@store.com
+Password: Test@1234
+
+Email: anjali@store.com
+Password: Test@1234
+
+
+### 👤 Users
+
+Email: user1@roxiler.com
+Password: Test@12345
+
+Email: user2@roxiler.com
+Password: Test@1234
+
+Email: user3@roxiler.com
+Password: Test@1234
+
+Email: user4@roxiler.com
+Password: Test@1234
+
+Email: user5@roxiler.com
+Password: Test@1234
 
 ## 🚀 Features
 
