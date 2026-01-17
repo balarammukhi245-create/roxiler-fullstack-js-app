@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 
 const API = axios.create({
-  baseURL:"https://roxiler-fullstack-js-store-backend.onrender.com"
+  baseURL:"https://roxiler-fullstack-js-store-backend.onrender.com/api"
 });
 
 // Attach token to every request
